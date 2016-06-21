@@ -21,7 +21,7 @@ class Server:
         while self.accepting:
             client_connected = self.sock.accept()
             print('Connection from', client_connected)
-            client_identify = client_connected[0].recv(64).decode()  # Isso depois pode virar uma função de autenticação
+            client_identify = client_connected[0].recv(config.IDENTIFY_BUFFER).decode()  # Isso depois pode virar uma função de autenticação
             self.clients.append((client_connected, client_identify))
 
     def start_message_manager(self):
