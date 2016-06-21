@@ -31,11 +31,11 @@ class MessageManager(Thread):
             # Receber mensagens
             for client in receive_ready:
                 print('incluindo')
-                self.messages.append(client.recv(512).decode())
+                self.messages.append(ast.literal_eval(client.recv(512).decode()))
 
     def dispatch_messages(self):
         while self.messages:
-            msg = ast.literal_eval(self.messages.pop())
+            msg = self.messages.pop()
             print(msg)
             to = self.get_client_sock_by_id(msg['to'])
             print('to', to)
