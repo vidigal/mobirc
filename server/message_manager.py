@@ -5,6 +5,8 @@ import select
 import time
 import ast
 
+import server_config as config
+
 
 class MessageManager(Thread):
 
@@ -31,7 +33,7 @@ class MessageManager(Thread):
             # Receber mensagens
             for client in receive_ready:
                 print('incluindo')
-                self.messages.append(ast.literal_eval(client.recv(512).decode()))
+                self.messages.append(ast.literal_eval(client.recv(config.RECEIVE_BUFFER).decode()))
 
     def dispatch_messages(self):
         while self.messages:
