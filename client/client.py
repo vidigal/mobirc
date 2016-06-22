@@ -33,7 +33,7 @@ class Client(Thread):
 
     def receive_message(self):
         while self.accepting:
-            print(self.sock.recv(1024))
+            print(self.sock.recv(config.MESSAGE_BUFFER))
 
 
 # Criar objeto da classe cliente
