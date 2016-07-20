@@ -1,6 +1,6 @@
 address = dict({
-    'host': '192.168.1.5',
-    'port': 38267
+    'host': '0.0.0.0',
+    'port': 38268
 })
 
 IDENTIFY_BUFFER = 64
