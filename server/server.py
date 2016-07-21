@@ -50,7 +50,7 @@ class Server(object):
                         print(addr, ' -> ' ,data)
                         client['conn'].sendto(data, client['addr'])
         except socket.error as e:
-            print('Não foi possivel enviar a msg: ',e)
+            print('Not possible sent the msg: {}'.format(e))
 
     def start_threads(self):
         while True:
