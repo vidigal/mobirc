@@ -2,43 +2,75 @@
 import socket
 
 import server_config as config
-from message_manager import MessageManager
 
+from threading import Thread
 
-class Server:
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.clients = []
-        self.accepting = True
-        self.message_manager = MessageManager(self)
+class Server(object):
 
-    def connect(self):
-        print('Starting up on %s port %s' % (self.host, self.port))
-        self.sock.bind((self.host, self.port))
-        self.sock.listen(1)  # Put socket into server mode
-        while self.accepting:
-            client_connected = self.sock.accept()
-            print('Connection from', client_connected)
-            client_identify = client_connected[0].recv(config.IDENTIFY_BUFFER).decode()  # Isso depois pode virar uma função de autenticação
-            self.clients.append((client_connected, client_identify))
+    def __init__(self, host=config.address['host'], port=config.address['port']):
+        self.__host = host
+        self.__port = port
+        self.__clients = []
+        self.__threads = []
+        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__socket.bind((host, port))
+        self.__socket.listen(10)
+        print('Server is open {}:{}'.format(host, port))
 
-    def start_message_manager(self):
-        self.message_manager.start()
+    @property
+    def get_socket(self):
+        return self.__socket
 
-    def close(self):
-        print('Closing server socket')
-        self.accepting = False
-        self.sock.close()
+    @property
+    def get_clients(self):
+        return self.__clients
 
+    @property
+    def get_threads(self):
+        return self.__threads
 
+    def add_client(self, client):
+        if client not in self.__clients:
+            self.__clients.append(client)
 
-# Criar objeto da classe server e startar servidor
-server = Server(config.address['host'], config.address['port'])
-server.start_message_manager()
-server.connect()
+    def add_threads(self, thread):
+        if thread not in self.__threads:
+            self.__threads.append(thread)
 
-server.close()
+    def clientHandler(self, conn, addr):
+        print(addr, 'is connected')
 
-#Está faltando fechar o connection
+        try:
+            while True:
+                data = conn.recv(config.RECEIVE_BUFFER)
+                if not data:
+                    break
+                for client in self.__clients:
+                    if addr != client['addr']:
+                        print(addr, ' -> ' ,data)
+                        client['conn'].sendto(data, client['addr'])
+        except socket.error as e:
+            print('Not possible sent the msg: {}'.format(e))
+
+    def start_threads(self):
+        while True:
+            conn, addr = self.get_socket.accept()
+            self.add_client({'conn': conn, 'addr': addr})
+            t = Thread(target=self.clientHandler, args=(conn, addr))
+            self.add_threads(t)
+            t.start()
+
+    def join_threads(self):
+        for t in self.get_threads:
+            t.join()
+
+if __name__ == '__main__':
+    try:
+        server = Server()
+
+        server.start_threads()
+        server.join_threads()
+
+    except KeyboardInterrupt:
+        server.get_socket.close()
+        print('Server is closed')
